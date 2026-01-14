@@ -1,0 +1,1068 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Beneath the Ruined Nation</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Serif:ital,wght@0,400;0,600;1,400&family=Crimson+Pro:ital,wght@0,300;0,400;0,600;1,300&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --ink: #2c2416;
+            --ink-light: #4a3f2f;
+            --parchment: #f4ede1;
+            --parchment-dark: #e8dcc8;
+            --vermillion: #a63d2f;
+            --gold: #b8860b;
+            --jade: #3d6b59;
+            --shadow: rgba(44, 36, 22, 0.15);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        html {
+            font-size: 16px;
+        }
+
+        body {
+            font-family: 'Crimson Pro', 'Noto Serif', Georgia, serif;
+            background: var(--parchment);
+            color: var(--ink);
+            min-height: 100vh;
+            line-height: 1.7;
+            overflow-x: hidden;
+        }
+
+        /* Texture overlay */
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: 
+                url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%' height='100%' filter='url(%23noise)'/%3E%3C/svg%3E");
+            opacity: 0.03;
+            pointer-events: none;
+            z-index: 1000;
+        }
+
+        /* Progress bar */
+        .progress-container {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 4px;
+            background: var(--parchment-dark);
+            z-index: 999;
+        }
+
+        .progress-bar {
+            height: 100%;
+            background: linear-gradient(90deg, var(--vermillion), var(--gold));
+            transition: width 0.5s ease;
+        }
+
+        .progress-container.hidden {
+            display: none;
+        }
+
+        .game-container {
+            max-width: 680px;
+            margin: 0 auto;
+            padding: 2rem 1.5rem 4rem;
+            position: relative;
+        }
+
+        /* Decorative border */
+        .game-container::before {
+            content: '';
+            position: absolute;
+            top: 1rem;
+            left: 0.5rem;
+            right: 0.5rem;
+            bottom: 1rem;
+            border: 1px solid var(--gold);
+            opacity: 0.3;
+            pointer-events: none;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 2rem;
+            padding-bottom: 1.5rem;
+            border-bottom: 1px solid var(--ink-light);
+            opacity: 0;
+            animation: fadeIn 1s ease forwards;
+        }
+
+        .header h1 {
+            font-family: 'Noto Serif', serif;
+            font-size: 1.8rem;
+            font-weight: 600;
+            letter-spacing: 0.1em;
+            color: var(--vermillion);
+            margin-bottom: 0.5rem;
+        }
+
+        .header .subtitle {
+            font-size: 0.95rem;
+            font-style: italic;
+            color: var(--ink-light);
+            letter-spacing: 0.05em;
+        }
+
+        /* Reference and creator info */
+        /* Intro illustration */
+        .intro-illustration {
+            width: 100%;
+            max-width: 400px;
+            margin: 1.5rem auto;
+            opacity: 0;
+            animation: fadeIn 1.5s ease forwards;
+            animation-delay: 0.2s;
+        }
+
+        .intro-illustration svg {
+            width: 100%;
+            height: auto;
+            border-radius: 2px;
+        }
+
+        .credits {
+            text-align: center;
+            margin-top: 1.5rem;
+            padding-top: 1rem;
+            opacity: 0;
+            animation: fadeIn 1s ease forwards;
+            animation-delay: 0.5s;
+        }
+
+        .credits .creator {
+            font-size: 0.95rem;
+            color: var(--ink);
+            margin-bottom: 1rem;
+        }
+
+        .credits .reference {
+            font-size: 0.85rem;
+            color: var(--ink-light);
+            font-style: italic;
+            line-height: 1.6;
+        }
+
+        .credits .reference-label {
+            font-style: normal;
+            font-weight: 600;
+            color: var(--ink);
+        }
+
+        .chapter-title {
+            font-family: 'Noto Serif', serif;
+            font-size: 1.3rem;
+            font-weight: 600;
+            color: var(--ink);
+            margin-bottom: 1.5rem;
+            padding-left: 1rem;
+            border-left: 3px solid var(--vermillion);
+            opacity: 0;
+            animation: slideIn 0.6s ease forwards;
+            animation-delay: 0.2s;
+        }
+
+        .scene-text {
+            font-size: 1.1rem;
+            margin-bottom: 2rem;
+            text-align: justify;
+            opacity: 0;
+            animation: fadeIn 0.8s ease forwards;
+            animation-delay: 0.4s;
+        }
+
+        .scene-text p {
+            margin-bottom: 1rem;
+            text-indent: 1.5em;
+        }
+
+        .scene-text p:first-child {
+            text-indent: 0;
+        }
+
+        .scene-text p:first-child::first-letter {
+            font-size: 2.5em;
+            float: left;
+            line-height: 1;
+            margin-right: 0.1em;
+            color: var(--vermillion);
+            font-weight: 600;
+        }
+
+        /* System check styling */
+        .system-check {
+            background: var(--parchment-dark);
+            border-left: 3px solid var(--jade);
+            padding: 1rem 1.2rem;
+            margin-bottom: 1.5rem;
+            font-style: italic;
+            color: var(--ink-light);
+            opacity: 0;
+            animation: fadeIn 0.6s ease forwards;
+            animation-delay: 0.3s;
+        }
+
+        .question {
+            font-size: 1.05rem;
+            font-weight: 600;
+            margin-bottom: 1.2rem;
+            color: var(--ink);
+            opacity: 0;
+            animation: fadeIn 0.6s ease forwards;
+            animation-delay: 0.6s;
+        }
+
+        .choices {
+            display: flex;
+            flex-direction: column;
+            gap: 0.8rem;
+            opacity: 0;
+            animation: fadeIn 0.6s ease forwards;
+            animation-delay: 0.8s;
+        }
+
+        .choice-btn {
+            background: var(--parchment-dark);
+            border: 1px solid var(--ink-light);
+            padding: 1rem 1.2rem;
+            font-family: 'Crimson Pro', serif;
+            font-size: 1rem;
+            color: var(--ink);
+            text-align: left;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .choice-btn::before {
+            content: '';
+            position: absolute;
+            left: 0;
+            top: 0;
+            height: 100%;
+            width: 3px;
+            background: var(--vermillion);
+            transform: scaleY(0);
+            transition: transform 0.3s ease;
+        }
+
+        .choice-btn:hover {
+            background: #f0e6d6;
+            border-color: var(--vermillion);
+            padding-left: 1.5rem;
+        }
+
+        .choice-btn:hover::before {
+            transform: scaleY(1);
+        }
+
+        .choice-btn:active {
+            transform: scale(0.98);
+        }
+
+        /* Back button */
+        .back-btn-container {
+            display: flex;
+            justify-content: flex-end;
+            margin-top: 2rem;
+            opacity: 0;
+            animation: fadeIn 0.6s ease forwards;
+            animation-delay: 1s;
+        }
+
+        .back-btn {
+            background: transparent;
+            border: 1px solid var(--ink-light);
+            padding: 0.6rem 1.2rem;
+            font-family: 'Crimson Pro', serif;
+            font-size: 0.9rem;
+            color: var(--ink-light);
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .back-btn:hover {
+            border-color: var(--vermillion);
+            color: var(--vermillion);
+        }
+
+        /* Ending styles */
+        .ending-container {
+            text-align: center;
+            padding: 2rem 0;
+        }
+
+        .ending-title {
+            font-family: 'Noto Serif', serif;
+            font-size: 1.5rem;
+            font-weight: 600;
+            color: var(--vermillion);
+            margin-bottom: 1.5rem;
+            opacity: 0;
+            animation: fadeIn 1s ease forwards;
+        }
+
+        .ending-text {
+            font-size: 1.1rem;
+            line-height: 1.8;
+            text-align: justify;
+            margin-bottom: 2rem;
+            opacity: 0;
+            animation: fadeIn 1s ease forwards;
+            animation-delay: 0.5s;
+        }
+
+        .ending-text p {
+            margin-bottom: 1rem;
+        }
+
+        .restart-btn {
+            background: var(--vermillion);
+            color: var(--parchment);
+            border: none;
+            padding: 0.8rem 2rem;
+            font-family: 'Noto Serif', serif;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            opacity: 0;
+            animation: fadeIn 0.6s ease forwards;
+            animation-delay: 1s;
+        }
+
+        .restart-btn:hover {
+            background: var(--ink);
+            transform: translateY(-2px);
+        }
+
+        /* Decorative elements */
+        .divider {
+            text-align: center;
+            margin: 2rem 0;
+            color: var(--gold);
+            font-size: 1.2rem;
+            letter-spacing: 0.5em;
+            opacity: 0.6;
+        }
+
+        .seal {
+            width: 60px;
+            height: 60px;
+            margin: 1.5rem auto;
+            border: 2px solid var(--vermillion);
+            border-radius: 4px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-family: 'Noto Serif', serif;
+            font-size: 0.8rem;
+            font-weight: 600;
+            color: var(--vermillion);
+            transform: rotate(-5deg);
+            opacity: 0.8;
+            letter-spacing: 0.05em;
+        }
+
+        /* Animations */
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateX(-20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateX(0);
+            }
+        }
+
+        /* Responsive */
+        @media (max-width: 480px) {
+            .game-container {
+                padding: 1.5rem 1rem 3rem;
+            }
+
+            .header h1 {
+                font-size: 1.5rem;
+            }
+
+            .scene-text {
+                font-size: 1rem;
+            }
+
+            .choice-btn {
+                padding: 0.9rem 1rem;
+            }
+
+            .credits .reference {
+                font-size: 0.8rem;
+            }
+        }
+
+        /* Hide content initially for smooth load */
+        .hidden {
+            display: none;
+        }
+    </style>
+</head>
+<body>
+    <div class="progress-container hidden" id="progress-container">
+        <div class="progress-bar" id="progress-bar"></div>
+    </div>
+
+    <div class="game-container">
+        <div id="game-content">
+            <!-- Content will be injected here -->
+        </div>
+    </div>
+
+    <script>
+        // Game state
+        let state = {
+            strategy: 5,
+            flexibility: 5,
+            loyalty: 5,
+            currentScene: 'intro',
+            history: []
+        };
+
+        // Scene order for progress calculation
+        const sceneOrder = [
+            'intro', 'ch1_scene1', 'ch1_scene2', 
+            'ch2_check', 'ch2_intro_resist', 'ch2_intro_retreat', 'ch2_intro_hesitant',
+            'ch2_scene1', 'ch2_scene2', 'ch2_scene3',
+            'ch3_check', 'ch3_intro_loyal', 'ch3_intro_adapted',
+            'ch3_scene1', 'ch3_scene2', 'ending'
+        ];
+
+        const totalScenes = 12; // Approximate main path length
+
+        function getProgress(sceneId) {
+            const progressMap = {
+                'intro': 0,
+                'ch1_scene1': 10,
+                'ch1_scene2': 20,
+                'ch2_check': 30,
+                'ch2_intro_resist': 35,
+                'ch2_intro_retreat': 35,
+                'ch2_intro_hesitant': 35,
+                'ch2_scene1': 45,
+                'ch2_scene2': 55,
+                'ch2_scene3': 65,
+                'ch3_check': 75,
+                'ch3_intro_loyal': 80,
+                'ch3_intro_adapted': 80,
+                'ch3_scene1': 85,
+                'ch3_scene2': 95,
+                'ending': 100
+            };
+            return progressMap[sceneId] || 0;
+        }
+
+        // Game content
+        const scenes = {
+            intro: {
+                isIntro: true,
+                chapter: null,
+                text: null,
+                question: null,
+                choices: [
+                    { text: 'Begin your story...', next: 'ch1_scene1' }
+                ],
+                showBack: false
+            },
+
+            ch1_scene1: {
+                chapter: 'Chapter 1: The Cataclysm',
+                text: `<p>The year is 1644. A time of cataclysm.</p>
+                <p>The Manchu iron cavalry has crushed Li Zicheng's short-lived regime. Within a month, Beijing changed masters twice. The news took forty days to reach Jiangnan.</p>
+                <p>You are a woman of a scholarly family that has served the Great Ming for generations. When the letter from the capital arrives, your father reads it, cries out in anguish, and faints. You and your husband rush to support him. Upon waking, his face is bathed in tears.</p>
+                <p>Your father's grief fills the room like incense smoke—heavy, suffocating. His brush has fallen from trembling fingers, ink bleeding across his unfinished poem. "The Great Ming is gone!" he had cried. Those words still echo in your ears.</p>
+                <p>Your husband stands beside you, his face a mask of concern. Your brothers wait at the doorway, uncertain. The servants whisper in the corridor. Everyone looks to someone else for guidance.</p>`,
+                question: 'How do you react to your father\'s grief?',
+                choices: [
+                    {
+                        text: 'Stumble back in shock. You instinctively worry for the family\'s future: Should the men serve the new dynasty or organize resistance?',
+                        effects: { flexibility: 1, strategy: 1 },
+                        next: 'ch1_scene2'
+                    },
+                    {
+                        text: 'Burst into tears. Though a woman, a tragic courage rises within you to share the fate of your fallen nation.',
+                        effects: { loyalty: 2 },
+                        next: 'ch1_scene2'
+                    }
+                ],
+                showBack: false
+            },
+
+            ch1_scene2: {
+                chapter: 'Chapter 1: The Cataclysm',
+                text: `<p>Panic spreads through Shanyin County like wildfire through dry reeds. Rumors of the approaching Qing army run wild through the streets and teahouses.</p>
+                <p>Some families flee in haste, their carts piled high with silk and silver. Others secretly recruit soldiers and shelter routed Ming troops in their courtyards. The choice before your family is clear—yet the path forward is not.</p>`,
+                question: 'What is your plan?',
+                choices: [
+                    {
+                        text: 'Urge your father, brothers, and husband to join the resistance, preserving the family\'s moral integrity to the end.',
+                        effects: { flexibility: -1, loyalty: 2 },
+                        next: 'ch2_check'
+                    },
+                    {
+                        text: 'Prioritize survival. Pack your valuables and flee to the old countryside home, seeking safety in stability.',
+                        effects: { strategy: 1, flexibility: 1 },
+                        next: 'ch2_check'
+                    },
+                    {
+                        text: 'Urge your family to assess the situation carefully. The century-old family legacy must not be severed; perhaps there are opportunities to cooperate with the Qing court.',
+                        effects: { strategy: 1, flexibility: 1, loyalty: -2 },
+                        next: 'ch2_check'
+                    }
+                ],
+                showBack: true
+            },
+
+            // Chapter 2 system check - this is a routing scene
+            ch2_check: {
+                isSystemCheck: true,
+                chapter: 'Chapter 2: The Dilemma',
+                getNext: function() {
+                    if (state.loyalty >= 8) {
+                        return 'ch2_intro_resist';
+                    } else if (state.flexibility >= 7 || state.strategy >= 7) {
+                        return 'ch2_intro_retreat';
+                    } else {
+                        return 'ch2_intro_hesitant';
+                    }
+                }
+            },
+
+            ch2_intro_resist: {
+                chapter: 'Chapter 2: The Dilemma',
+                systemMessage: 'Your unwavering loyalty has steeled your family\'s resolve. They have pledged to resist to the death.',
+                text: `<p>Your family has made the fateful choice. In the ancestral hall, beneath the tablets of generations past, your father, brothers, and husband have sworn an oath: they will never serve the Manchu invaders. The women of the household—yourself included—have prepared white mourning clothes, ready to wear them for the dynasty or for your men, whichever falls first.</p>
+                <p>The months pass like water through fingers. News arrives of family friends and elders—men your father drank tea with, scholars who debated poetry in your courtyard. One by one, they choose suicide as martyrdom, refusing to serve the Qing. Their names become whispers of reverence and sorrow.</p>`,
+                question: 'Hearing news of their deaths, you think:',
+                choices: [
+                    {
+                        text: '"A worthy death! These are loyal subjects. I shall write their biographies to console their spirits."',
+                        effects: { loyalty: 1, strategy: 1 },
+                        next: 'ch2_scene2'
+                    },
+                    {
+                        text: 'You sigh endlessly. What will become of their widows and orphans? Is it worth it for a shattered Ming?',
+                        effects: { loyalty: -1, flexibility: 1 },
+                        next: 'ch2_scene2'
+                    },
+                    {
+                        text: '"Even death is better than my father\'s ignoble survival. Why can they die for the country, but he cannot?"',
+                        effects: { loyalty: 2, flexibility: -1, strategy: -1 },
+                        next: 'ch2_scene2'
+                    }
+                ],
+                showBack: true
+            },
+
+            ch2_intro_retreat: {
+                chapter: 'Chapter 2: The Dilemma',
+                systemMessage: 'Your practical wisdom has guided your family to safety. They have retreated to the countryside.',
+                text: `<p>Under cover of night, your family slipped away from the county seat. The old countryside estate, neglected for years, now becomes your refuge. Here, among the rice paddies and mulberry groves, you wait and watch as the storm passes over the land.</p>
+                <p>Even in hiding, news reaches you. Family friends and elders—men your father drank tea with, scholars who debated poetry in your courtyard—have chosen suicide as martyrdom, refusing to serve the Qing. Their names become whispers of reverence and sorrow among the refugees who pass through.</p>`,
+                question: 'Hearing news of their deaths, you think:',
+                choices: [
+                    {
+                        text: '"A worthy death! These are loyal subjects. I shall write their biographies to console their spirits."',
+                        effects: { loyalty: 1, strategy: 1 },
+                        next: 'ch2_scene2'
+                    },
+                    {
+                        text: 'You sigh endlessly. What will become of their widows and orphans? Is it worth it for a shattered Ming?',
+                        effects: { loyalty: -1, flexibility: 1 },
+                        next: 'ch2_scene2'
+                    },
+                    {
+                        text: '"Even death is better than my father\'s ignoble survival. Why can they die for the country, but he cannot?"',
+                        effects: { loyalty: 2, flexibility: -1, strategy: -1 },
+                        next: 'ch2_scene2'
+                    }
+                ],
+                showBack: true
+            },
+
+            ch2_intro_hesitant: {
+                chapter: 'Chapter 2: The Dilemma',
+                systemMessage: 'Your family remains caught between worlds, unable to commit fully to resistance or submission.',
+                text: `<p>Indecision grips your household like a fever. Your father paces the courtyard at night, unable to sleep. Your husband speaks of resistance one day, survival the next. The servants grow anxious, sensing their masters' uncertainty.</p>
+                <p>Meanwhile, news arrives of family friends and elders—men your father drank tea with, scholars who debated poetry in your courtyard. One by one, they choose suicide as martyrdom, refusing to serve the Qing. Their names become whispers of reverence and sorrow, and each death deepens your family's paralysis.</p>`,
+                question: 'Hearing news of their deaths, you think:',
+                choices: [
+                    {
+                        text: '"A worthy death! These are loyal subjects. I shall write their biographies to console their spirits."',
+                        effects: { loyalty: 1, strategy: 1 },
+                        next: 'ch2_scene2'
+                    },
+                    {
+                        text: 'You sigh endlessly. What will become of their widows and orphans? Is it worth it for a shattered Ming?',
+                        effects: { loyalty: -1, flexibility: 1 },
+                        next: 'ch2_scene2'
+                    },
+                    {
+                        text: '"Even death is better than my father\'s ignoble survival. Why can they die for the country, but he cannot?"',
+                        effects: { loyalty: 2, flexibility: -1, strategy: -1 },
+                        next: 'ch2_scene2'
+                    }
+                ],
+                showBack: true
+            },
+
+            ch2_scene2: {
+                chapter: 'Chapter 2: The Dilemma',
+                text: `<p>Your father has begun to fast, showing his resolve through the ancient way of refusal. He grows thinner by the day, his robes hanging loose on his frame.</p>
+                <p>Meanwhile, you discover that your husband has been secretly funding the volunteer army—silver disappearing from the family coffers to buy weapons and rice for resistance fighters hiding in the mountains.</p>`,
+                question: 'Knowing this, what do you think?',
+                choices: [
+                    {
+                        text: 'Husband and wife, father and daughter—we advance and retreat together. Total loyalty is the only way.',
+                        effects: { loyalty: 2 },
+                        next: 'ch2_scene3'
+                    },
+                    {
+                        text: 'Father should not abandon us. If one must show loyalty, act secretly like my husband; survival comes first.',
+                        effects: { flexibility: 1, strategy: 1 },
+                        next: 'ch2_scene3'
+                    },
+                    {
+                        text: 'Like a mantis trying to stop a chariot. If the Qing army finds out, the family is doomed. It must stop immediately.',
+                        effects: { loyalty: -2, strategy: 1, flexibility: 1 },
+                        next: 'ch2_scene3'
+                    }
+                ],
+                showBack: true
+            },
+
+            ch2_scene3: {
+                chapter: 'Chapter 2: The Dilemma',
+                text: `<p>Your father dies of starvation, his final breath a whisper of dynasties past. Before you can properly mourn, disaster strikes—your husband's activities are exposed to the authorities.</p>
+                <p>You flee in panic, leaving behind everything: the ancestral tablets, the library of ancient texts, the garden where you played as a child. Behind you, the Qing massacres sweep through Jiangnan. Countless stories of loyalty are whispered among the refugees on the roads.</p>`,
+                question: 'At this moment, you think:',
+                choices: [
+                    {
+                        text: 'Now is the time to promote the loyal spirit of Jiangnan. I must publish these stories!',
+                        effects: { loyalty: 2, strategy: -1 },
+                        next: 'ch3_check'
+                    },
+                    {
+                        text: 'I should record history now, but not publish it, lest I invite destruction upon what remains of my family.',
+                        effects: { loyalty: 1, flexibility: 1, strategy: 1 },
+                        next: 'ch3_check'
+                    },
+                    {
+                        text: 'Better to keep my mouth shut and forget the past completely. The dead are dead.',
+                        effects: { strategy: 1, flexibility: 1 },
+                        next: 'ch3_check'
+                    }
+                ],
+                showBack: true
+            },
+
+            // Chapter 3 system check
+            ch3_check: {
+                isSystemCheck: true,
+                chapter: 'Chapter 3: Embers and New Shoots',
+                getNext: function() {
+                    if (state.loyalty >= state.flexibility && state.loyalty >= state.strategy) {
+                        return 'ch3_intro_loyal';
+                    } else {
+                        return 'ch3_intro_adapted';
+                    }
+                }
+            },
+
+            ch3_intro_loyal: {
+                chapter: 'Chapter 3: Embers and New Shoots',
+                systemMessage: 'Your loyalty to the fallen Ming remains strongest. You live in poverty, still worshipping the old dynasty in your heart.',
+                text: `<p>Years pass. The chaos subsides into an uneasy peace. You have settled in a modest dwelling, far from your former wealth. The silk robes are gone, replaced by plain cotton. But in your heart, the Ming dynasty still reigns.</p>
+                <p>You keep the old calendar, observe the old festivals, and wear white on the anniversary of the fall. To your neighbors, you are simply a widow of reduced circumstances. They do not know that behind your door, you maintain a small shrine to the martyred emperor.</p>
+                <p>The Shunzhi court, seeking to consolidate power, reopens the civil service examinations to win over the Han elite. Your son—or perhaps your nephew, for the war has blurred the lines of family—shows remarkable brilliance. His essays are praised, his calligraphy admired. Kinfolk begin to suggest he take the examination.</p>`,
+                question: 'What is your decision?',
+                choices: [
+                    {
+                        text: 'Refuse strictly. "One does not serve two masters." No descendant of ours will be a Qing official.',
+                        effects: { loyalty: 2 },
+                        next: 'ch3_scene2'
+                    },
+                    {
+                        text: 'Give tacit support. The family needs protection from within the court; this is the way of survival.',
+                        effects: { flexibility: 2, strategy: 1 },
+                        next: 'ch3_scene2'
+                    }
+                ],
+                showBack: true
+            },
+
+            ch3_intro_adapted: {
+                chapter: 'Chapter 3: Embers and New Shoots',
+                systemMessage: 'Practicality has guided your path. You have adapted to become subjects of the new dynasty.',
+                text: `<p>Years pass. The chaos subsides into an uneasy peace. Through careful navigation and timely compromises, your family has found its footing in the new order. The queue has been adopted, the proper obeisances learned. Life goes on.</p>
+                <p>Your household is not wealthy, but neither does it starve. You have traded the rigid pride of the old scholars for the flexible wisdom of survivors. Some might call it shame; you call it responsibility to the living.</p>
+                <p>The Shunzhi court has reopened the civil service examinations to win over the Han elite. Your son—or perhaps your nephew, for the war has blurred the lines of family—shows remarkable brilliance. His essays are praised, his calligraphy admired. Kinfolk speak of the examination as though it were already decided.</p>`,
+                question: 'What is your decision?',
+                choices: [
+                    {
+                        text: 'Refuse strictly. "One does not serve two masters." No descendant of ours will be a Qing official.',
+                        effects: { loyalty: 2 },
+                        next: 'ch3_scene2'
+                    },
+                    {
+                        text: 'Give tacit support. The family needs protection from within the court; this is the way of survival.',
+                        effects: { flexibility: 2, strategy: 1 },
+                        next: 'ch3_scene2'
+                    }
+                ],
+                showBack: true
+            },
+
+            ch3_scene2: {
+                chapter: 'Chapter 3: Embers and New Shoots',
+                text: `<p>Your manuscript is finally complete. You have titled it "Records of the Ashes"—a chronicle of the martyrs of the late Ming, their courage, their sacrifice, their final words.</p>
+                <p>But the atmosphere tightens like a noose. The Qing court has begun the Literary Inquisition, strictly investigating any writings that hint at rebellion or nostalgia for the fallen dynasty. Scholars have been executed for less than what you have written.</p>`,
+                question: 'What do you do with your life\'s work?',
+                choices: [
+                    {
+                        text: 'Burn it in pain. "While the green hills last, there will be wood to burn." A book cannot be allowed to destroy the whole family.',
+                        effects: { flexibility: 2, strategy: 1 },
+                        next: 'ending'
+                    },
+                    {
+                        text: 'Seal and bury it. Hide it in an urn within the ancestral tomb, waiting for the sun to shine again in a century.',
+                        effects: { strategy: 2, loyalty: 1 },
+                        next: 'ending'
+                    }
+                ],
+                showBack: true
+            }
+        };
+
+        const endings = {
+            recluse: {
+                title: 'The Reclusive Ming Remnant',
+                text: `<p>You rejected all temptations from the new dynasty. The offers of position, the promises of comfort, the pleas of practical kinfolk—all were turned away at your door.</p>
+                <p>You spent your remaining years in poverty and reminiscence, wearing the robes of the old dynasty until they fell to tatters, observing the old calendar when all around you had adopted the new.</p>
+                <p>To your neighbors, you were an eccentric. To the few who remembered, you were a treasure. You are not merely a remnant of the Ming—you are the last tombkeeper of a bygone era, holding vigil over graves that the world has already forgotten.</p>
+                <p>When you close your eyes for the final time, you see not the Qing sky above you, but the red walls of a palace that exists now only in memory.</p>`
+            },
+            adaptable: {
+                title: 'The Adaptable Qing Subject',
+                text: `<p>Your descendants achieved success in the new examinations. They wear the queue now, speak the proper honorifics, bow to the new emperor as their ancestors bowed to the old.</p>
+                <p>You locked the memories of the Ming deep away, in a chest within a chest within your heart. To outsiders, you won at survival. Your grandchildren will never know hunger. Your family name continues.</p>
+                <p>But late at night, when the house is quiet and the moon hangs low, you feel a hidden pain—like a splinter too deep to remove. You wonder sometimes about the friends who chose death, whether they found peace you will never know.</p>
+                <p>The green hills remain, and there is wood to burn. Whether that is victory or defeat, only history will judge.</p>`
+            },
+            historian: {
+                title: 'The Historian of the Inner Chambers',
+                text: `<p>You found the narrow path between the cliff and the abyss. With wisdom and patience, you preserved the family while recording the blood and tears of an era.</p>
+                <p>Your manuscripts were secretly preserved, passed from hand to trusted hand, copied in the dead of night by scholars who understood. One day—perhaps in a hundred years, perhaps in three hundred—they will see the light again.</p>
+                <p>You lived with resilience, understanding what so few could grasp: that preserving the body need not mean selling the soul. That survival and integrity are not always enemies.</p>
+                <p>In the end, you are neither traitor nor martyr, but something rarer still—a witness. And witnesses, in time, become the voice of truth.</p>`
+            }
+        };
+
+        function applyEffects(effects) {
+            for (const [attr, value] of Object.entries(effects)) {
+                state[attr] = Math.max(0, Math.min(15, state[attr] + value));
+            }
+        }
+
+        function getEnding() {
+            const { strategy, flexibility, loyalty } = state;
+
+            // Ending 3: Historian (Loyalty >= 9 & Strategy >= 9)
+            if (loyalty >= 9 && strategy >= 9) {
+                return 'historian';
+            }
+            // Ending 1: Recluse (Loyalty > 10 & Flexibility < 7)
+            if (loyalty > 10 && flexibility < 7) {
+                return 'recluse';
+            }
+            // Ending 2: Adaptable (Flexibility > 10 or Strategy > 10, & Loyalty < 8)
+            if ((flexibility > 10 || strategy > 10) && loyalty < 8) {
+                return 'adaptable';
+            }
+
+            // Default fallback based on highest stat
+            if (loyalty >= strategy && loyalty >= flexibility) {
+                return loyalty > 8 ? 'recluse' : 'historian';
+            } else if (flexibility >= strategy) {
+                return 'adaptable';
+            } else {
+                return state.loyalty >= 7 ? 'historian' : 'adaptable';
+            }
+        }
+
+        function updateProgress(sceneId) {
+            const progressContainer = document.getElementById('progress-container');
+            const progressBar = document.getElementById('progress-bar');
+            
+            if (sceneId === 'intro') {
+                progressContainer.classList.add('hidden');
+            } else {
+                progressContainer.classList.remove('hidden');
+                const progress = getProgress(sceneId);
+                progressBar.style.width = progress + '%';
+            }
+        }
+
+        function renderScene(sceneId) {
+            const content = document.getElementById('game-content');
+
+            // Handle system check scenes (routing only)
+            if (scenes[sceneId] && scenes[sceneId].isSystemCheck) {
+                const nextScene = scenes[sceneId].getNext();
+                state.history.push(sceneId);
+                state.currentScene = nextScene;
+                renderScene(nextScene);
+                return;
+            }
+
+            updateProgress(sceneId);
+
+            // Handle intro page
+            if (sceneId === 'intro') {
+                content.innerHTML = `
+                    <header class="header" style="border-bottom: none; padding-bottom: 0.5rem;">
+                        <h1>Beneath the Ruined Nation</h1>
+                        <div class="subtitle">An Interactive Historical Fiction</div>
+                    </header>
+                    <div class="intro-illustration">
+                        <svg viewBox="0 0 400 200" xmlns="http://www.w3.org/2000/svg">
+                            <!-- Misty mountains background -->
+                            <defs>
+                                <linearGradient id="skyGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+                                    <stop offset="0%" style="stop-color:#e8dcc8;stop-opacity:1" />
+                                    <stop offset="100%" style="stop-color:#d4c4a8;stop-opacity:1" />
+                                </linearGradient>
+                                <linearGradient id="mistGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+                                    <stop offset="0%" style="stop-color:#4a3f2f;stop-opacity:0.1" />
+                                    <stop offset="100%" style="stop-color:#4a3f2f;stop-opacity:0.3" />
+                                </linearGradient>
+                            </defs>
+                            
+                            <!-- Sky -->
+                            <rect width="400" height="200" fill="url(#skyGrad)"/>
+                            
+                            <!-- Distant mountains - layer 3 -->
+                            <path d="M0 140 Q50 100 100 120 T200 95 T300 110 T400 90 L400 200 L0 200 Z" fill="#4a3f2f" opacity="0.15"/>
+                            
+                            <!-- Middle mountains - layer 2 -->
+                            <path d="M0 160 Q80 120 150 140 T280 115 T400 130 L400 200 L0 200 Z" fill="#4a3f2f" opacity="0.25"/>
+                            
+                            <!-- Foreground hills - layer 1 -->
+                            <path d="M0 175 Q100 150 180 165 T350 155 T400 170 L400 200 L0 200 Z" fill="#4a3f2f" opacity="0.4"/>
+                            
+                            <!-- Ruined pagoda silhouette -->
+                            <g transform="translate(280, 95)" opacity="0.5">
+                                <!-- Base tier -->
+                                <path d="M10 50 L5 55 L35 55 L30 50 Z" fill="#2c2416"/>
+                                <rect x="8" y="40" width="24" height="10" fill="#2c2416"/>
+                                <!-- Middle tier -->
+                                <path d="M12 40 L7 45 L33 45 L28 40 Z" fill="#2c2416"/>
+                                <rect x="10" y="30" width="20" height="10" fill="#2c2416"/>
+                                <!-- Top tier - partially ruined -->
+                                <path d="M14 30 L10 34 L30 34 L26 30 Z" fill="#2c2416"/>
+                                <rect x="13" y="22" width="14" height="8" fill="#2c2416"/>
+                                <!-- Broken top -->
+                                <path d="M15 22 L20 12 L22 14 L25 22 Z" fill="#2c2416"/>
+                                <!-- Missing section to show ruin -->
+                                <rect x="22" y="25" width="6" height="5" fill="url(#skyGrad)"/>
+                            </g>
+                            
+                            <!-- Bare winter trees -->
+                            <g transform="translate(60, 145)" opacity="0.45">
+                                <line x1="10" y1="55" x2="10" y2="25" stroke="#2c2416" stroke-width="2"/>
+                                <line x1="10" y1="30" x2="2" y2="18" stroke="#2c2416" stroke-width="1.5"/>
+                                <line x1="10" y1="35" x2="18" y2="22" stroke="#2c2416" stroke-width="1.5"/>
+                                <line x1="10" y1="40" x2="4" y2="32" stroke="#2c2416" stroke-width="1"/>
+                            </g>
+                            
+                            <g transform="translate(90, 150)" opacity="0.35">
+                                <line x1="8" y1="50" x2="8" y2="28" stroke="#2c2416" stroke-width="1.5"/>
+                                <line x1="8" y1="32" x2="2" y2="22" stroke="#2c2416" stroke-width="1"/>
+                                <line x1="8" y1="36" x2="14" y2="26" stroke="#2c2416" stroke-width="1"/>
+                            </g>
+                            
+                            <!-- Flying birds (fleeing) -->
+                            <g fill="none" stroke="#2c2416" stroke-width="1" opacity="0.4">
+                                <path d="M120 60 Q123 57 126 60 Q129 57 132 60"/>
+                                <path d="M140 50 Q142 48 144 50 Q146 48 148 50"/>
+                                <path d="M135 65 Q137 63 139 65 Q141 63 143 65"/>
+                                <path d="M155 55 Q157 53 159 55 Q161 53 163 55"/>
+                                <path d="M150 45 Q151 44 152 45 Q153 44 154 45"/>
+                            </g>
+                            
+                            <!-- Lone figure (woman) in distance -->
+                            <g transform="translate(180, 155)" opacity="0.5">
+                                <ellipse cx="5" cy="3" rx="3" ry="3" fill="#2c2416"/>
+                                <path d="M5 6 L5 15 M5 10 L2 14 M5 10 L8 14 M5 15 L3 25 M5 15 L7 25" stroke="#2c2416" stroke-width="1.5" fill="none"/>
+                                <!-- Flowing robe suggestion -->
+                                <path d="M3 12 Q1 18 3 25 L7 25 Q9 18 7 12" fill="#2c2416" opacity="0.7"/>
+                            </g>
+                            
+                            <!-- Mist layers -->
+                            <ellipse cx="100" cy="180" rx="150" ry="30" fill="#e8dcc8" opacity="0.5"/>
+                            <ellipse cx="320" cy="175" rx="120" ry="25" fill="#e8dcc8" opacity="0.4"/>
+                            
+                            <!-- Smoke/incense rising -->
+                            <path d="M290 95 Q285 80 290 70 Q295 60 288 50" stroke="#4a3f2f" stroke-width="1" fill="none" opacity="0.2"/>
+                        </svg>
+                    </div>
+                    <div class="credits">
+                        <div class="creator">Created by <strong>Xinyang Li</strong></div>
+                        <div class="reference">
+                            <span class="reference-label">Based on:</span><br>
+                            Xinyang Li, <em>Female Historians and their Historical Works in the Ming and Qing Dynasties (1368-1911)</em>. Taipei: Huamulan Culture Press, 2025.
+                        </div>
+                    </div>
+                    <div class="choices" style="margin-top: 2rem;">
+                        <button class="choice-btn" onclick="makeChoice(0)">Begin your story...</button>
+                    </div>
+                `;
+                state.currentScene = sceneId;
+                return;
+            }
+
+            // Handle ending
+            if (sceneId === 'ending') {
+                const endingKey = getEnding();
+                const ending = endings[endingKey];
+
+                content.innerHTML = `
+                    <div class="ending-container">
+                        <div class="seal">END</div>
+                        <h2 class="ending-title">${ending.title}</h2>
+                        <div class="ending-text">${ending.text}</div>
+                        <button class="restart-btn" onclick="restartGame()">Begin Anew</button>
+                    </div>
+                `;
+                updateProgress('ending');
+                return;
+            }
+
+            const scene = scenes[sceneId];
+            state.currentScene = sceneId;
+
+            let html = `<h2 class="chapter-title">${scene.chapter}</h2>`;
+            
+            // Add system message if present
+            if (scene.systemMessage) {
+                html += `<div class="system-check">${scene.systemMessage}</div>`;
+            }
+            
+            html += `<div class="scene-text">${scene.text}</div>`;
+
+            if (scene.question) {
+                html += `<div class="divider">— ◆ —</div>`;
+                html += `<p class="question">${scene.question}</p>`;
+            }
+
+            html += `<div class="choices">`;
+            scene.choices.forEach((choice, index) => {
+                html += `<button class="choice-btn" onclick="makeChoice(${index})">${choice.text}</button>`;
+            });
+            html += `</div>`;
+
+            // Add back button if applicable
+            if (scene.showBack) {
+                html += `
+                    <div class="back-btn-container">
+                        <button class="back-btn" onclick="goBack()">Back</button>
+                    </div>
+                `;
+            }
+
+            content.innerHTML = html;
+
+            // Scroll to top smoothly
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
+        function makeChoice(index) {
+            const scene = scenes[state.currentScene];
+            const choice = scene.choices[index];
+
+            // Save current state to history before making choice
+            state.history.push({
+                scene: state.currentScene,
+                stats: {
+                    strategy: state.strategy,
+                    flexibility: state.flexibility,
+                    loyalty: state.loyalty
+                }
+            });
+
+            if (choice.effects) {
+                applyEffects(choice.effects);
+            }
+
+            renderScene(choice.next);
+        }
+
+        function goBack() {
+            if (state.history.length > 0) {
+                let lastState = state.history.pop();
+                
+                // Skip system check entries
+                while (lastState && typeof lastState === 'string' && state.history.length > 0) {
+                    lastState = state.history.pop();
+                }
+                
+                if (lastState && typeof lastState === 'object') {
+                    state.strategy = lastState.stats.strategy;
+                    state.flexibility = lastState.stats.flexibility;
+                    state.loyalty = lastState.stats.loyalty;
+                    renderScene(lastState.scene);
+                }
+            }
+        }
+
+        function restartGame() {
+            state = {
+                strategy: 5,
+                flexibility: 5,
+                loyalty: 5,
+                currentScene: 'intro',
+                history: []
+            };
+            renderScene('intro');
+        }
+
+        // Initialize game
+        document.addEventListener('DOMContentLoaded', () => {
+            renderScene('intro');
+        });
+    </script>
+</body>
+</html>
